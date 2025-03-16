@@ -12,6 +12,7 @@ import { storeOTP, verifyOTP } from "../../cache/otp_cache.js";
 import { sendOTPEmail } from "../../helpers.js/send_mail.js";
 import SuperUsersTokenModel from "../../models/super_users/user_tokens.js";
 import moment from "moment";
+import generateNewRefreshToken from "../../helpers.js/generate_refresh_token.js";
 
 
 const createSuperUser = async (
@@ -84,8 +85,8 @@ const verifyOtp = async ({ otp, mobile }) => {
     const isVerified = verifyOTP(user._id, otp)
     if (!isVerified) throw new AppError("Invalid OTP !");
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken({ _id: user._id });
+    const refreshToken = generateRefreshToken({ _id: user._id });
 
     let userToken = await SuperUsersTokenModel.findOne({ user: user._id })
     const expiresAt = moment().add(7, "days").toDate();
@@ -105,26 +106,16 @@ const verifyOtp = async ({ otp, mobile }) => {
   }
 };
 
-const refreshToken = (req, res) => {
-  const { token } = req.body;
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
-
-  if (!refreshTokens.includes(token)) {
-    return res.status(403).json({ message: "Invalid refresh token" });
+const refreshToken = async ({ user, token, userId }) => {
+  try {
+    if (!token) throw new AppError("Token is Required", 400);
+    const tokenData = await generateNewRefreshToken(token, user, userId)
+    return tokenData
+  } catch (error) {
+    throw error
   }
 
-  const decoded = verifyRefreshToken(token);
-  if (!decoded) return res.status(403).json({ message: "Invalid refresh token" });
 
-  // Generate new tokens
-  const newAccessToken = generateAccessToken({ _id: decoded.userId });
-  const newRefreshToken = generateRefreshToken({ _id: decoded.userId });
-
-  // Replace old refresh token with a new one
-  refreshTokens = refreshTokens.filter(t => t !== token);
-  refreshTokens.push(newRefreshToken);
-
-  res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
 };
 
 const logout = (req, res) => {
@@ -136,5 +127,6 @@ const logout = (req, res) => {
 export {
   createSuperUser,
   sendOTP,
-  verifyOtp
+  verifyOtp,
+  refreshToken
 }

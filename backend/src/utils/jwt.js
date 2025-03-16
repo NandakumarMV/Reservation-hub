@@ -4,15 +4,15 @@ import dotenv from "dotenv";
 dotenv.config();
 
 
-export const generateAccessToken = (user) => {
-  return jwt.sign({ userId: user._id }, process.env.ACCESS_TOKEN_SECRET, {
+export const generateAccessToken = ({ _id }) => {
+  return jwt.sign({ userId: _id }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
   });
 };
 
 
-export const generateRefreshToken = (user) => {
-  return jwt.sign({ userId: user._id }, process.env.REFRESH_TOKEN_SECRET, {
+export const generateRefreshToken = ({ _id }) => {
+  return jwt.sign({ userId: _id }, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
   });
 };

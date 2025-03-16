@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createSuperUser, sendOTP, verifyOtp } from "../../services/super_admin/super_users.js";
+import { createSuperUser, refreshToken, sendOTP, verifyOtp } from "../../services/super_admin/super_users.js";
 import { userSchema } from "../../validators/super_user_validator.js";
 
 const SuperUserRouter = new Router()
@@ -36,10 +36,17 @@ const verifyOtpHandler = async (req, res, next) => {
     next(error)
   }
 }
-
+const generateRefreshTokenHandler = async (req, res, next) => {
+  try {
+    return res.status(200).json(await refreshToken({ ...req.body }))
+  } catch (error) {
+    next(error)
+  }
+}
 SuperUserRouter.post("/superuser/create", createSuperUserHandler)
 SuperUserRouter.post("/superuser/otp", sendOtpHandler)
 SuperUserRouter.post("/superuser/otp/verify", verifyOtpHandler)
+SuperUserRouter.post("/superuser/refreshtoken", generateRefreshTokenHandler)
 
 
 export default SuperUserRouter
