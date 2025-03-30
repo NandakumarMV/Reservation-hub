@@ -114,19 +114,22 @@ const refreshToken = async ({ user, token, userId }) => {
   } catch (error) {
     throw error
   }
-
-
 };
 
-const logout = (req, res) => {
-  const { token } = req.body;
-  refreshTokens = refreshTokens.filter(t => t !== token); // Remove from storage
-  res.status(200).json({ message: "Logged out successfully" });
+const logout = ({ user, token }) => {
+  try {
+    if (!token) throw new AppError("Token is Required", 400);
+    const data = deleteToken(token, user)
+    return data
+  } catch (error) {
+    throw error
+  }
 };
 
 export {
   createSuperUser,
   sendOTP,
   verifyOtp,
-  refreshToken
+  refreshToken,
+  logout
 }

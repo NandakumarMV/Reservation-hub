@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createSuperUser, refreshToken, sendOTP, verifyOtp } from "../../services/super_admin/super_users.js";
 import { userSchema } from "../../validators/super_user_validator.js";
+import { deleteToken } from "../../helpers.js/generate_refresh_token.js";
 
 const SuperUserRouter = new Router()
 
@@ -43,10 +44,17 @@ const generateRefreshTokenHandler = async (req, res, next) => {
     next(error)
   }
 }
+const deleteTokenHandler = async (req, res, next) => {
+  try {
+    return res.status(200).json(await deleteToken({ ...req.body, ...req.headers }))
+  } catch (error) {
+    next(error)
+  }
+}
 SuperUserRouter.post("/superuser/create", createSuperUserHandler)
 SuperUserRouter.post("/superuser/otp", sendOtpHandler)
 SuperUserRouter.post("/superuser/otp/verify", verifyOtpHandler)
 SuperUserRouter.post("/superuser/refreshtoken", generateRefreshTokenHandler)
-
+SuperUserRouter.post("/superuser/logout", deleteTokenHandler)
 
 export default SuperUserRouter

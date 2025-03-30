@@ -32,4 +32,18 @@ const generateNewRefreshToken = async (token, user, userId) => {
   }
 }
 
+export const deleteToken = async (token, user) => {
+  try {
+    if (!token) throw new AppError("Token is Required", 400);
+    if (user == 'customer') {
+
+    } else {
+      await SuperUsersTokenModel.deleteOne({ token })
+    }
+    return { message: "Logout Successfully !" }
+  } catch (error) {
+    throw error
+  }
+}
+
 export default generateNewRefreshToken

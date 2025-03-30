@@ -1,8 +1,6 @@
 import baseRedisClient from "./base-redis-client.js";
 
 export const storeOTP = async (id, otp) => {
-  console.log(id, otp, "FROM RRRRRRRRRRRRRRRRRRR");
-
   await baseRedisClient.setex(`otp:${id.toString()}`, process.env.REDIS_TTL, otp);
 };
 
