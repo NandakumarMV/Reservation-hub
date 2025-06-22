@@ -1,6 +1,8 @@
 import { Router } from "express";
-import { createSuperUser, sendOTP, verifyOtp } from "../../services/super_admin/super_users.js";
+import { createSuperUser, logout, refreshToken, sendOTP, verifyOtp } from "../../services/super_admin/super_users.js";
 import { userSchema } from "../../validators/super_user_validator.js";
+
+
 
 const SuperUserRouter = new Router()
 
@@ -24,6 +26,7 @@ const createSuperUserHandler = async (req, res, next) => {
 
 const sendOtpHandler = async (req, res, next) => {
   try {
+
     return res.status(200).json(await sendOTP({ ...req.body }))
   } catch (error) {
     next(error)
@@ -37,9 +40,28 @@ const verifyOtpHandler = async (req, res, next) => {
   }
 }
 
-SuperUserRouter.post("/superuser/create", createSuperUserHandler)
-SuperUserRouter.post("/superuser/otp", sendOtpHandler)
-SuperUserRouter.post("/superuser/otp/verify", verifyOtpHandler)
+const generateRefreshTokenHandler = async (req, res, next) => {
+  try {
+    return res.status(200).json(await refreshToken({ ...req.body }))
+  } catch (error) {
+    next(error)
+  }
+}
+const deleteTokenHandler = async (req, res, next) => {
+  try {
+    return res.status(200).json(await logout({ ...req.body, ...req.headers }))
+  } catch (error) {
+    next(error)
+  }
+}
 
+
+
+
+SuperUserRouter.post("/create", createSuperUserHandler)
+SuperUserRouter.post("/otp", sendOtpHandler)
+SuperUserRouter.post("/otp/verify", verifyOtpHandler)
+SuperUserRouter.post("/refreshtoken", generateRefreshTokenHandler)
+SuperUserRouter.post("/logout", deleteTokenHandler)
 
 export default SuperUserRouter

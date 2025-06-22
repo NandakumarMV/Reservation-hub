@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev":"nodemon src/server.js"
+    "dev": "nodemon src/server.js"
   },
   "author": "Nandakumar MV",
   "license": "ISC",
@@ -15,8 +15,10 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cron": "^4.1.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.47",
     "mongodb": "^6.14.2",

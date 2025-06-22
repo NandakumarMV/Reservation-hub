@@ -7,7 +7,8 @@ import express from "express";
 import axios from "axios";
 import connectMongoDB from "./utils/db.js";
 import { errorHandler, AppError } from "./utils/error_handler.js";
-import Routes from "./routes/index.js";
+import SuperRoutes from "./routes/super_users.js/index.js";
+import { verifySuperUserToken } from "./middleware/verify_token.js";
 
 const app = express()
 
@@ -19,7 +20,7 @@ connectMongoDB()
 
 
 
-app.use("/reservation/v1", cors(), Routes)
+app.use("/brewspace/v1/superusers/", cors(), verifySuperUserToken, SuperRoutes)
 
 app.all("*", (req, res, next) => {
   next(new AppError("Route Not Found", 404));

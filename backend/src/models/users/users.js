@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const SuperUsersSchema = new mongoose.Schema(
+const UsersSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: {
@@ -22,7 +22,8 @@ const SuperUsersSchema = new mongoose.Schema(
       required: false,
     },
     profile_img: { type: String },
-    status: { type: Boolean, required: true }
+    status: { type: Boolean, required: true },
+    role: { type: mongoose.Schema.ObjectId, ref: "roles", required: true, index: true },
   },
   {
     strict: true,
@@ -30,7 +31,7 @@ const SuperUsersSchema = new mongoose.Schema(
   },
 );
 
-SuperUsersSchema.index({ email: 1 });
+UsersSchema.index({ email: 1 });
 
-const SuperUserModel = mongoose.model("Super_users", SuperUsersSchema);
-export default SuperUserModel;
+const UserModel = mongoose.model("users", UsersSchema);
+export default UserModel;

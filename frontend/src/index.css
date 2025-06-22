@@ -1,0 +1,62 @@
+/* :root {
+  -font-size-sm: clamp(0.6rem, 0.17vw + 0.76rem, 0.89rem);
+  -font-size-base: clamp(0.8rem, 0.34vw + 0.91rem, 1.0rem);
+  -font-size-md: clamp(1.0rem, 0.61vw + 1.1rem, 1.2rem);
+  -font-size-lg: clamp(1.0rem, 1.5vw + 0.86rem, 1.7rem);
+  -font-size-xl: clamp(1.2rem, 1.56vw + 0.56rem, 2.0rem);
+  -font-size-xxl: clamp(1.44rem, 1.88v + 0.85rem, 2.5rem);
+  -font-size-xxxl: clamp(2.05rem, 2.54vw + .80rem, 3.0rem);
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  font-family: Poppins;
+}
+
+h1 {
+  font-size: var(-font-size-xxxl);
+}
+
+h2 {
+  font-size: var(-font-size-xxl);
+}
+
+h4 {
+  font-size: var(-font-size-xl);
+}
+
+h4 {
+  font-size: var(-font-size-lg);
+}
+
+h5 {
+  font-size: var(-font-size-md);
+}
+
+h6 {
+  font-size: var(-font-size-sm);
+}
+
+p {
+  font-size: var(-font-size-base);
+} */
+a{
+  text-decoration: none;
+}
+.gradient-text {
+  display: inline-block;
+  background: linear-gradient(
+    141deg,
+    rgba(131, 56, 236, 1) 0%,
+    rgba(58, 134, 255, 1) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  width: fit-content;
+}
+* {
+  word-wrap: break-word;
+}
