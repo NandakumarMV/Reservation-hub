@@ -1,4 +1,4 @@
-import SuperUserModel from "../../models/super_users/super_users.js";
+import UserModel from "../../models/users/users.js";
 import { AppError, errorHandler } from "../../utils/error_handler.js";
 import jwt from "jsonwebtoken";
 import {
@@ -10,9 +10,10 @@ import {
 import { generateOTP } from "../../utils/otp-generator.js";
 import { storeOTP, verifyOTP } from "../../cache/otp_cache.js";
 import { sendOTPEmail } from "../../helpers.js/send_mail.js";
-import SuperUsersTokenModel from "../../models/super_users/user_tokens.js";
+import UsersTokenModel from "../../models/users/user_tokens.js";
 import moment from "moment";
 import generateNewRefreshToken from "../../helpers.js/generate_refresh_token.js";
+import RolesModel from "../../models/users/roles.js";
 
 
 const createSuperUser = async (
@@ -22,22 +23,23 @@ const createSuperUser = async (
     mobile,
     country_code,
     nationality,
-    profile_img
+    profile_img,
   }
 ) => {
   try {
 
-    const exists = await SuperUserModel.findOne({ mobile }).lean()
-
+    const exists = await UserModel.findOne({ mobile }).lean()
+    const adminRole = await RolesModel.findOne({ handle: "admin" })
     if (exists) throw new AppError("Mobile Number Already in use", 400);
 
-    const newUser = new SuperUserModel({
+    const newUser = new UserModel({
       name,
       mobile,
       country_code,
       email,
       status: true,
       nationality,
+      role: adminRole._id
     })
     await newUser.save()
 
@@ -51,19 +53,21 @@ const createSuperUser = async (
 
 const sendOTP = async ({ mobile }) => {
   try {
+    console.log(mobile);
+
     if (!mobile) throw new AppError("Mobile Number is Required");
 
-    const user = await SuperUserModel.findOne({ mobile })
-    if (!user) throw new AppError("Invaild User");
+    const user = await UserModel.findOne({ mobile })
+    if (!user) throw new AppError("Invaild User", 401);
 
     const otp = generateOTP();
 
     await storeOTP(user._id, otp);
 
     try {
-      const emailSent = await sendOTPEmail(user.email, otp);
+      await sendOTPEmail(user.email, otp);
     } catch (error) {
-      throw new AppError("Error While Sending Otp");
+      throw new AppError("Error While Sending Otp", 400);
     }
 
     return { message: "OTP SEND SUCCESSFULLY !" }
@@ -79,22 +83,22 @@ const sendOTP = async ({ mobile }) => {
 const verifyOtp = async ({ otp, mobile }) => {
   try {
 
-    const user = await SuperUserModel.findOne({ mobile });
-    if (!user) throw new AppError("Invalid User");
+    const user = await UserModel.findOne({ mobile });
+    if (!user) throw new AppError("Invalid User", 401);
 
     const isVerified = verifyOTP(user._id, otp)
-    if (!isVerified) throw new AppError("Invalid OTP !");
+    if (!isVerified) throw new AppError("Invalid OTP !", 401);
 
     const accessToken = generateAccessToken({ _id: user._id });
     const refreshToken = generateRefreshToken({ _id: user._id });
 
-    let userToken = await SuperUsersTokenModel.findOne({ user: user._id })
+    let userToken = await UsersTokenModel.findOne({ user: user._id })
     const expiresAt = moment().add(7, "days").toDate();
     if (userToken) {
       userToken.token = refreshToken
       userToken.expiresAt = expiresAt
     } else {
-      userToken = new SuperUsersTokenModel({ user: user._id, token: refreshToken, expiresAt: expiresAt })
+      userToken = new UsersTokenModel({ user: user._id, token: refreshToken, expiresAt: expiresAt })
     }
     await userToken.save()
 
@@ -106,25 +110,39 @@ const verifyOtp = async ({ otp, mobile }) => {
   }
 };
 
-const refreshToken = async ({ user, token, userId }) => {
-  try {
-    if (!token) throw new AppError("Token is Required", 400);
-    const tokenData = await generateNewRefreshToken(token, user, userId)
-    return tokenData
-  } catch (error) {
-    throw error
-  }
+const refreshToken = async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+  const decoded = verifyRefreshToken(token);
+  if (!decoded) return res.status(403).json({ message: "Invalid refresh token" });
+
+  const userId = decoded.userId;
+
+  const userToken = await UsersTokenModel.findOne({ user: userId, token });
+  if (!userToken) return res.status(403).json({ message: "Refresh token not recognized" });
+
+  const newAccessToken = generateAccessToken({ _id: userId });
+  const newRefreshToken = generateRefreshToken({ _id: userId });
+
+
+  userToken.token = newRefreshToken;
+  userToken.expiresAt = moment().add(7, 'days').toDate();
+  await userToken.save();
+
+  res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
 };
 
-const logout = ({ user, token }) => {
-  try {
-    if (!token) throw new AppError("Token is Required", 400);
-    const data = deleteToken(token, user)
-    return data
-  } catch (error) {
-    throw error
-  }
+
+const logout = async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ message: "Token required" });
+
+  await UsersTokenModel.deleteOne({ token });
+
+  res.status(200).json({ message: "Logged out successfully" });
 };
+
 
 export {
   createSuperUser,
